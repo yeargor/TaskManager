@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+
+  sqlserver:
+    image:  mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      SA_PASSWORD: "YourStrongPassword123!"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql-data:/var/opt/mssql
+
+  auth-service:
+    build:
+      context: ./AuthService
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+      - "5001:5001"
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=AuthDb;User Id=sa;Password=pleasecomein
+      - ASPNETCORE_ENVIRONMENT=Production
+    depends_on:
+      - sqlserver
+      - redis
+
+volumes:
+  mssql-data:
