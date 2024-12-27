@@ -1,14 +1,24 @@
-﻿FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /TaskManager/AuthService
-COPY AuthService.csproj ./
+#See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
+
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+USER app
+WORKDIR /app
+EXPOSE 5000
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+ARG BUILD_CONFIGURATION=Release
+WORKDIR /src
+COPY ["AuthService.csproj", "."]
 RUN dotnet restore "AuthService.csproj"
 COPY . .
-RUN dotnet publish -c Release -o /app/publish
+WORKDIR "/src"
+RUN dotnet build "AuthService.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
-ENV ASPNETCORE_URLS=http://+:5000;http://+:5001
+FROM build AS publish
+ARG BUILD_CONFIGURATION=Release
+RUN dotnet publish "AuthService.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+
+FROM base AS final
 WORKDIR /app
-COPY --from=build /app/publish .
-EXPOSE 5000
-EXPOSE 5001
+COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "AuthService.dll"]
