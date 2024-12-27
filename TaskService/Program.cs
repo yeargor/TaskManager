@@ -1,18 +1,35 @@
-using Microsoft.EntityFrameworkCore;
 using TaskService.Data;
+using TaskService.Services;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
+// Add services to the container
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Database connection
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// DI for project service
+builder.Services.AddScoped<ITaskService, TaskService.Services.TaskService>();
+
+// JWT Authentication
+builder.Services.AddAuthentication("Bearer")
+    .AddJwtBearer(options =>
+    {
+        options.Authority = "http://auth-service";
+        options.RequireHttpsMetadata = false;
+        options.Audience = "project-api";
+    });
+
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Middleware
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -21,7 +38,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthorization();// 27.12 23:00 обновить строки подключения
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 

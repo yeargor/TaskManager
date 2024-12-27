@@ -23,22 +23,22 @@ namespace AuthService.Services
 
         public async Task<bool> RegisterAsync(RegisterDto dto)
         {
-            if (await _context.Users.AnyAsync(u => u.Email == dto.Email)) return false;
+            if (await _context.Persons.AnyAsync(u => u.Email == dto.Email)) return false;
 
-            var user = new User
+            var user = new Person
             {
                 Email = dto.Email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password)
             };
 
-            _context.Users.Add(user);
+            _context.Persons.Add(user);
             await _context.SaveChangesAsync();
             return true;
         }
 
         public async Task<string?> LoginAsync(LoginDto dto)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+            var user = await _context.Persons.FirstOrDefaultAsync(u => u.Email == dto.Email);
             if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash)) return null;
 
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -58,9 +58,9 @@ namespace AuthService.Services
             return tokenHandler.WriteToken(token);
         }
 
-        public async Task<User?> GetUserByEmailAsync(string email)
+        public async Task<Person?> GetUserByEmailAsync(string email)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            return await _context.Persons.FirstOrDefaultAsync(u => u.Email == email);
         }
     }
 }

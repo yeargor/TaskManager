@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using TaskService.Models;
 
 namespace TaskService.Data
 {
@@ -6,6 +7,6 @@ namespace TaskService.Data
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-        public DbSet<TaskService.Models.Task> Tasks { get; set; }
+        public DbSet<Models.Task> Tasks { get; set; }
     }
 }
