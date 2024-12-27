@@ -22,7 +22,19 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5000:5000"
-      - "5001:5001"
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=AuthDb;User Id=sa;Password=pleasecomein
+      - ASPNETCORE_ENVIRONMENT=Production
+    depends_on:
+      - sqlserver
+      - redis
+
+  project-service:
+    build:
+      context: ./ProjectService
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5000"
     environment:
       - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=AuthDb;User Id=sa;Password=pleasecomein
       - ASPNETCORE_ENVIRONMENT=Production
