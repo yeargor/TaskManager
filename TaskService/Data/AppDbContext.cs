@@ -1,12 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using AuthService.Models;
+using TaskService.Models;
 
-namespace AuthService.Data
+namespace TaskService.Data
 {
     public class AppDbContext : DbContext
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-        public DbSet<Person> Persons { get; set; }
+        public DbSet<Models.Task> Tasks { get; set; }
     }
 }
