@@ -1,21 +1,6 @@
-version: '3.8'
+version: '3.4'
 
 services:
-  redis:
-    image: redis
-    ports:
-      - "6379:6379"
-
-  sqlserver:
-    image:  mcr.microsoft.com/mssql/server:2022-latest
-    environment:
-      SA_PASSWORD: "YourStrongPassword123!"
-      ACCEPT_EULA: "Y"
-    ports:
-      - "1433:1433"
-    volumes:
-      - mssql-data:/var/opt/mssql
-
   auth-service:
     build:
       context: ./AuthService
@@ -23,11 +8,13 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=AuthDb;User Id=sa;Password=pleasecomein
-      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_ENVIRONMENT=Development
     depends_on:
       - sqlserver
       - redis
+    networks:
+      - authnetwork
+    restart: on-failure
 
   project-service:
     build:
@@ -36,11 +23,62 @@ services:
     ports:
       - "5001:5000"
     environment:
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=AuthDb;User Id=sa;Password=pleasecomein
-      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_ENVIRONMENT=Development
     depends_on:
       - sqlserver
       - redis
+    networks:
+      - authnetwork
+    restart: on-failure
 
+  task-service:
+    build:
+      context: ./TaskService
+      dockerfile: Dockerfile
+    ports:
+      - "5002:5000"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - sqlserver
+      - redis
+    networks:
+      - authnetwork
+    restart: on-failure
+
+  user-service:
+    build:
+      context: ./UserService
+      dockerfile: Dockerfile
+    ports:
+      - "5003:5000"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - sqlserver
+      - redis
+    networks:
+      - authnetwork
+    restart: on-failure
+
+  sqlserver:
+    image:  mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      MSSQL_SA_PASSWORD: "YourStrongPassword123!"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlvolume:/var/opt/mssql
+    networks:
+      - authnetwork
+
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+
+networks:
+  authnetwork:
 volumes:
-  mssql-data:
+  sqlvolume:
