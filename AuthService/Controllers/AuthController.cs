@@ -33,6 +33,17 @@ namespace AuthService.Controllers
             return Ok(new { token });
         }
 
+        [HttpPost("logout")]
+        public async Task<IActionResult> LogoutAsync()
+        {
+            var userEmail = User.FindFirstValue(ClaimTypes.Name);
+            if (userEmail != null)
+            {
+                await _authService.LogoutAsync(userEmail);
+            }
+            return Ok("Logged out successfully.");
+        }
+
         [Authorize]
         [HttpGet("profile")]
         public async Task<IActionResult> GetProfile()

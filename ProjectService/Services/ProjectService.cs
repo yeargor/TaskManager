@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using System.Text.Json;
 
-namespace ProjectService.Service
+namespace ProjectService.Services
 {
     public class ProjectService : IProjectService
     {

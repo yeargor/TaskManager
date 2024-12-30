@@ -66,7 +66,14 @@ namespace AuthService.Services
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
+            string jwtToken = tokenHandler.WriteToken(token);
+
+            await _cache.SetStringAsync(user.Email, jwtToken, new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
+            });
+
+            return jwtToken;
         }
 
         public async Task<Person?> GetUserByEmailAsync(string email)
@@ -110,6 +117,16 @@ namespace AuthService.Services
                         {
                             AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
                         });
+        }
+
+        public async Task<string?> GetTokenFromCacheAsync(string email)
+        {
+            return await _cache.GetStringAsync(email);
+        }
+
+        public async Task LogoutAsync(string email)
+        {
+            await _cache.RemoveAsync(email);
         }
     }
 }
