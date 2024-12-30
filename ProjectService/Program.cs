@@ -16,6 +16,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // DI for project service
 builder.Services.AddScoped<IProjectService, ProjectService.Service.ProjectService>();
 
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetValue<string>("Redis:Configuration");
+    options.InstanceName = "ProjectService:";
+});
+
 // JWT Authentication
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer(options =>
