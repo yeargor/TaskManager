@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
+using System.Text.Json;
 using TaskService.Data;
 using TaskService.Models.Dto;
 
@@ -8,9 +10,12 @@ namespace TaskService.Services
     {
         private readonly AppDbContext _context;
 
-        public TaskService(AppDbContext context)
+        private readonly IDistributedCache _cache;
+
+        public TaskService(AppDbContext context, IDistributedCache cache)
         {
             _context = context;
+            _cache = cache;
         }
 
         public async Task<IEnumerable<Models.Task>> GetAllTasksAsync()
@@ -48,6 +53,46 @@ namespace TaskService.Services
                 _context.Tasks.Remove(project);
                 await _context.SaveChangesAsync();
             }
+        }
+
+        public async Task<Models.Task> FindTask(int id)
+        {
+            var cacheKey = $"task:{id}";
+            Models.Task? task = null;
+
+            var cachedTask = await _cache.GetStringAsync(cacheKey);
+            if (cachedTask != null)
+            {
+                task = JsonSerializer.Deserialize<Models.Task>(cachedTask);
+            }
+            else
+            {
+                task = await _context.Tasks.FirstOrDefaultAsync(p => p.Id == id);
+
+                if (task != null)
+                {
+                    await CacheInRedis(task, cacheKey);
+                }
+            }
+
+            return task;
+        }
+
+        public async Task CacheInRedis(Models.Task task, string cacheKey)
+        {
+            var taskJson = JsonSerializer.Serialize(task);
+            await _cache.SetStringAsync(
+                        cacheKey,
+                        taskJson,
+                        new DistributedCacheEntryOptions
+                        {
+                            AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
+                        });
+        }
+
+        public async Task DeleteFromCache(string cacheKey)
+        {
+            await _cache.RemoveAsync(cacheKey);
         }
     }
 }
