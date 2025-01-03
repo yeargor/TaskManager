@@ -3,14 +3,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using AuthService.Data;
 using System.Text;
-using AuthService.Services;
-using Microsoft.Extensions.Configuration;
 using AuthService.Serivces;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
-//Добавил env var чтобы переопределять строку подключения к бд из docker-compose файла в appsettings.json
-// Load configuration from environment variables and appsettings
 builder.Configuration.AddEnvironmentVariables();
 
 // Add services to the container
@@ -22,6 +18,13 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IAuthService, AuthService.Services.AuthService>();
+
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetValue<string>("Redis:Configuration");
+    options.InstanceName = "AuthService:";
+});
+
 
 // JWT Authentication
 var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Secret"]);
@@ -38,6 +41,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"]
+        };
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var token = context.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                if (!string.IsNullOrEmpty(token))
+                {
+                    context.Token = token;
+                }
+                return Task.CompletedTask;
+            }
         };
     });
 
@@ -67,6 +82,14 @@ builder.Services.AddSwaggerGen(c =>
             new string[] {}
         }
     });
+});
+
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetValue<string>("Redis:Configuration");
+    options.InstanceName = "AuthService:";
 });
 
 var app = builder.Build();

@@ -7,7 +7,7 @@ namespace TaskService.Controllers
 {
     [ApiController]
     [Route("api/tasks")]
-    //[Authorize]
+    [Authorize]
     public class TaskController : Controller
     {
         private readonly ITaskService _taskService;

@@ -1,7 +1,7 @@
 ﻿using ProjectService.Model.Dto;
 using ProjectService.Model;
 
-namespace ProjectService.Service
+namespace ProjectService.Services
 {
     public interface IProjectService
     {

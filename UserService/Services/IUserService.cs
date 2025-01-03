@@ -4,7 +4,8 @@ namespace UserService.Services
 {
     public interface IUserService
     {
-        Task<IEnumerable<UserDto>> GetAllUsersAsync();
-        Task<UserDto?> GetUserByIdAsync(Guid id);
+        //Task<IEnumerable<PersonDto>> GetAllUsersAsync();
+        Task<PersonDto?> GetUserByIdAsync(int id);
+        Task<PersonDto?> GetUserByEmailAsync(string email);
     }
 }

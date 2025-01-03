@@ -8,5 +8,6 @@ namespace AuthService.Serivces
         Task<bool> RegisterAsync(RegisterDto dto);
         Task<string?> LoginAsync(LoginDto dto);
         Task<Person?> GetUserByEmailAsync(string email);
+        Task LogoutAsync(string email);
     }
 }
