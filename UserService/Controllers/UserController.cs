@@ -20,15 +20,15 @@ namespace UserService.Controllers
             _cache = cache;
         }
 
-        [HttpGet("/search")]
-        public async Task<IActionResult> FindUser(string email)
-        {
-            var user = await _userService.GetUserByEmailAsync(email);
-            if (string.IsNullOrEmpty(email)) return Unauthorized("User not found.");
+        //[HttpGet("/search")]
+        //public async Task<IActionResult> FindUser(string email)
+        //{
+        //    var user = await _userService.GetUserByEmailAsync(email);
+        //    if (string.IsNullOrEmpty(email)) return Unauthorized("User not found.");
 
-            if (user == null) return NotFound();
-            return Ok(user);
-        }
+        //    if (user == null) return NotFound();
+        //    return Ok(user);
+        //}
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserById(int id)

@@ -40,9 +40,12 @@ namespace TaskService.Services
             var project = await _context.Tasks.FindAsync(id);
             if (project == null) throw new Exception("Task not found");
 
+            await DeleteFromCache($"project:{project.Id}");
+
             project.Name = dto.Name;
             project.Description = dto.Description;
             await _context.SaveChangesAsync();
+            await CacheInRedis(project, $"project:{project.Id}");
         }
 
         public async Task DeleteTaskAsync(int id)

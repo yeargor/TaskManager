@@ -1,13 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProjectService.Model.Dto;
-using ProjectService.Service;
+using ProjectService.Services;
 
 namespace ProjectService.Controllers
 {
     [ApiController]
     [Route("api/projects")]
-    //[Authorize]
+    [Authorize]
     public class ProjectController : ControllerBase
     {
         private readonly IProjectService _projectService;

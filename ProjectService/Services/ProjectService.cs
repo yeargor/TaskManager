@@ -40,16 +40,14 @@ namespace ProjectService.Services
 
         public async Task UpdateProjectAsync(int id, UpdateProjectDto dto)
         {
-            var project = await FindProject(id);
-            if (project == null) throw new Exception("Project not found");
+            var project = await _context.Projects.FindAsync(id);
+            if (project == null) throw new Exception("Task not found");
 
             await DeleteFromCache($"project:{project.Id}");
 
             project.Name = dto.Name;
             project.Description = dto.Description;
             await _context.SaveChangesAsync();
-
-
             await CacheInRedis(project, $"project:{project.Id}");
         }
 

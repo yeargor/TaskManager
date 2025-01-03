@@ -68,7 +68,7 @@ namespace AuthService.Services
             var token = tokenHandler.CreateToken(tokenDescriptor);
             string jwtToken = tokenHandler.WriteToken(token);
 
-            await _cache.SetStringAsync(user.Email, jwtToken, new DistributedCacheEntryOptions
+            await _cache.SetStringAsync(dto.Email, jwtToken, new DistributedCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
             });
@@ -126,7 +126,16 @@ namespace AuthService.Services
 
         public async Task LogoutAsync(string email)
         {
-            await _cache.RemoveAsync(email);
+            var token = await _cache.GetStringAsync(email);
+            if (token != null)
+            {
+                await _cache.SetStringAsync($"blacklist:{token}", "revoked",
+                    new DistributedCacheEntryOptions
+                    {
+                        AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
+                    });
+                await _cache.RemoveAsync(email);
+            }
         }
     }
 }
